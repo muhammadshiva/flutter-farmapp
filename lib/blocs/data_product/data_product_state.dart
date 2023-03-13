@@ -17,6 +17,6 @@ class DataProductFailed extends DataProductState {
 }
 
 class DataProductSuccess extends DataProductState {
-  final List<DataProductModel> dataProduct;
+  final List<DataProduct> dataProduct;
   const DataProductSuccess(this.dataProduct);
 }

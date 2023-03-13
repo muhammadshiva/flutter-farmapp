@@ -1,5 +1,45 @@
-class DataProductModel {
-  DataProductModel({
+class DataProductResponse {
+    DataProductResponse({
+        required this.jsonrpc,
+        this.id,
+        required this.result,
+    });
+
+    String jsonrpc;
+    dynamic id;
+    DataProductTemporary result;
+
+    factory DataProductResponse.fromJson(Map<String, dynamic> json) => DataProductResponse(
+        jsonrpc: json["jsonrpc"],
+        id: json["id"],
+        result: DataProductTemporary.fromJson(json["result"]),
+    );
+
+    Map<String, dynamic> toJson() => {
+        "jsonrpc": jsonrpc,
+        "id": id,
+        "result": result.toJson(),
+    };
+}
+
+class DataProductTemporary {
+    DataProductTemporary({
+        required this.data,
+    });
+
+    List<DataProduct> data;
+
+    factory DataProductTemporary.fromJson(Map<String, dynamic> json) => DataProductTemporary(
+        data: List<DataProduct>.from(json["data"].map((x) => DataProduct.fromJson(x))),
+    );
+
+    Map<String, dynamic> toJson() => {
+        "data": List<dynamic>.from(data.map((x) => x.toJson())),
+    };
+}
+
+class DataProduct {
+  DataProduct({
     required this.id,
     required this.name,
     required this.date,
@@ -13,7 +53,7 @@ class DataProductModel {
 
   int id;
   String name;
-  DateTime date;
+  String date;
   String description;
   List<dynamic> userId;
   String state;
@@ -21,11 +61,11 @@ class DataProductModel {
   List<FromIdElement> toIds;
   List<ByproductId> byproductIds;
 
-  factory DataProductModel.fromJson(Map<String, dynamic> json) =>
-      DataProductModel(
+  factory DataProduct.fromJson(Map<String, dynamic> json) =>
+      DataProduct(
         id: json["id"],
         name: json["name"],
-        date: DateTime.parse(json["date"]),
+        date: json["date"],
         description: json["description"],
         userId: List<dynamic>.from(json["user_id"].map((x) => x)),
         state: json["state"],
@@ -41,7 +81,7 @@ class DataProductModel {
         "id": id,
         "name": name,
         "date":
-            "${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}",
+            date,
         "description": description,
         "user_id": List<dynamic>.from(userId.map((x) => x)),
         "state": state,
@@ -62,7 +102,7 @@ class ByproductId {
 
   int id;
   List<dynamic> productId;
-  int qty;
+  double qty;
   List<dynamic> uomId;
 
   factory ByproductId.fromJson(Map<String, dynamic> json) => ByproductId(
@@ -92,9 +132,9 @@ class FromIdElement {
 
   int id;
   List<dynamic> productId;
-  int qty;
+  double qty;
   List<dynamic> uomId;
-  int secondQty;
+  double secondQty;
   bool secondUom;
 
   factory FromIdElement.fromJson(Map<String, dynamic> json) => FromIdElement(

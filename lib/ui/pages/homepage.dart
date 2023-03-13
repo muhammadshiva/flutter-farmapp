@@ -1,64 +1,110 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rphu_application/blocs/fetch_data_products/fetch_data_products_cubit.dart';
+import 'package:rphu_application/models/data_product_model.dart';
 import 'package:rphu_application/shared/theme.dart';
 import 'package:rphu_application/ui/pages/detailpage.dart';
 
 class HomePageScreen extends StatefulWidget {
-  const HomePageScreen({super.key});
+  HomePageScreen({super.key});
 
   @override
   State<HomePageScreen> createState() => _HomePageScreenState();
 }
 
 class _HomePageScreenState extends State<HomePageScreen> {
+  late FetchDataProductsCubit _fetchDataProductsCubit;
+
+  @override
+  void initState() {
+    _fetchDataProductsCubit = FetchDataProductsCubit()..load();
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _fetchDataProductsCubit.close();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Rumah Potong Hewan Unggas',
-          style: blackTextStyle.copyWith(
-            color: Color(0xFF14193F),
+    return BlocProvider(
+      create: (context) => _fetchDataProductsCubit,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'Rumah Potong Hewan Unggas',
+            style: blackTextStyle.copyWith(
+              color: Color(0xFF14193F),
+            ),
           ),
+          elevation: 0.5,
         ),
-        elevation: 0.5,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: 24,
-          horizontal: 12,
-        ),
-        child: ListView(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(
-                bottom: 10,
-              ),
-              child: Text(
-                'List Materials',
-                style: blackTextStyle.copyWith(
-                  color: Color(0xFF14193F),
-                  fontWeight: semiBold,
-                  fontSize: 20,
+        body: Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: 24,
+            horizontal: 12,
+          ),
+          child: ListView(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  bottom: 10,
+                ),
+                child: Text(
+                  'List Materials',
+                  style: blackTextStyle.copyWith(
+                    color: Color(0xFF14193F),
+                    fontWeight: semiBold,
+                    fontSize: 20,
+                  ),
                 ),
               ),
-            ),
-            cardProduct(),
-            cardProduct(),
-            cardProduct(),
-            cardProduct(),
-            cardProduct(),
-          ],
+              BlocBuilder<FetchDataProductsCubit, FetchDataProductsState>(
+                builder: (context, state) {
+                  return state is FetchDataProductsLoading
+                      ? Center(
+                          child: CircularProgressIndicator(),
+                        )
+                      : state is FetchDataProductsFailure
+                          ? Center(
+                              child: Text(state.message ?? "terjadi kesalahan"),
+                            )
+                          : state is FetchDataProductsSuccess
+                              ? ListView.separated(
+                                  shrinkWrap: true,
+                                  physics: NeverScrollableScrollPhysics(),
+                                  separatorBuilder: (context, index) =>
+                                      SizedBox(
+                                    height: 10,
+                                  ),
+                                  itemCount: state.data.length,
+                                  itemBuilder: (context, index) {
+                                    DataProduct dataProduct = state.data[index];
+                                    return cardProduct(dataProduct);
+                                  },
+                                )
+                              : SizedBox();
+                },
+              )
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget cardProduct() {
+  Widget cardProduct(DataProduct dataProduct) {
     return InkWell(
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => DetailPageScreen()),
+          MaterialPageRoute(
+              builder: (context) => DetailPageScreen(
+                    rphuId: dataProduct.id,
+                  )),
         );
       },
       child: Container(
@@ -77,7 +123,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'RPHU/API/22/10/05/011',
+              dataProduct.name,
               style: blackTextStyle.copyWith(
                 fontWeight: semiBold,
                 fontSize: 18,
@@ -99,7 +145,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
                       ),
                     ),
                     Text(
-                      '10/10/2022',
+                      dataProduct.date,
                       style: blackTextStyle.copyWith(
                         fontWeight: medium,
                         color: Color(0xFF14193F),
@@ -119,7 +165,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
                       ),
                     ),
                     Text(
-                      'ADMINISTRATOR',
+                      dataProduct.userId[1],
                       style: blackTextStyle.copyWith(
                         fontWeight: medium,
                         color: Color(0xFF14193F),
@@ -139,7 +185,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
               ),
             ),
             Text(
-              'Bahan Baku FS LiveBird Potong tanggal 7 September 2022',
+              dataProduct.description,
               style: blackTextStyle.copyWith(
                 fontWeight: medium,
                 color: Color(0xFF14193F),

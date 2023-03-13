@@ -1,13 +1,15 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:rphu_application/models/data_product_model.dart';
 import 'package:rphu_application/shared/shared_values.dart';
 
 class DataProductService {
-  Future<List<DataProductModel>> getDataProducts() async {
+  final token = 'BdKYsP2022';
+
+  Future<List<DataProduct>> getDataProducts() async {
     try {
-      const token = 'BdKYsP2022';
 
       final res = await http.get(Uri.parse('$baseUrl/rphu-get'), headers: {
         'Authorization': token,
@@ -16,9 +18,9 @@ class DataProductService {
       print(res.body);
 
       if (res.statusCode == 200) {
-        return List<DataProductModel>.from(
+        return List<DataProduct>.from(
           jsonDecode(res.body)['result'].map(
-            (data) => DataProductModel.fromJson(data),
+            (data) => DataProduct.fromJson(data),
           ),
         ).toList();
       }
@@ -28,4 +30,43 @@ class DataProductService {
       rethrow;
     }
   }
+
+  Future<DataProductResponse> fetchDataProducts() async {
+    try {
+
+      final Map<String, dynamic> body = {};
+
+      final res = await http.post(Uri.parse('$baseUrl/rphu-get/'),body: jsonEncode(body) , headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $token',
+        HttpHeaders.contentTypeHeader: 'application/json'
+      });
+
+      var responseJson = json.decode(res.body.toString());
+      return DataProductResponse.fromJson(responseJson);
+      
+    } catch (e) {
+      throw e.toString();
+    }
+  }
+
+  Future<DataProductResponse> fetchDataProductsDetail({
+    required int rphuId
+  }) async {
+    try {
+
+      final Map<String, dynamic> body = {};
+
+      final res = await http.post(Uri.parse('$baseUrl/rphu-get/$rphuId'),body: jsonEncode(body) , headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $token',
+        HttpHeaders.contentTypeHeader: 'application/json'
+      });
+
+      var responseJson = json.decode(res.body.toString());
+      return DataProductResponse.fromJson(responseJson);
+      
+    } catch (e) {
+      throw e.toString();
+    }
+  }
+
 }
